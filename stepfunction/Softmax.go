@@ -9,18 +9,21 @@ func NewSoftmax() Activation {
 	return &Softmax{}
 }
 
-func (r *Softmax) Activation(value float64) float64 {
-	return 1.0 / (1.0 + math.Exp(-value))
+func (s *Softmax) Activation(value float64) float64 {
+	return value
 }
 
-/// sigmoid implements the sigmoid function
-//// for use in activation functions.
-//func sigmoid(x float64) float64 {
-//	return 1.0 / (1.0 + math.Exp(-x))
-//}
-//
-//// sigmoidPrime implements the derivative
-//// of the sigmoid function for backpropagation.
-//func sigmoidPrime(x float64) float64 {
-//	return x * (1.0 - x)
-//}
+func SoftmaxFunction(vector []float64) []float64 {
+	e := make([]float64, len(vector))
+	sum := 0.0
+	for i, v := range vector {
+		e[i] = math.Exp(v)
+		sum += e[i]
+	}
+
+	for i := range e {
+		e[i] /= sum
+	}
+
+	return e
+}

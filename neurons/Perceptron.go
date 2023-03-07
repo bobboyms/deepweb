@@ -40,17 +40,18 @@ func (p *Perceptron) AdjustWeights(weight float64) {
 	}
 
 	weightDense := mat.NewDense(row, col, values)
-
 	adjust := mat.NewDense(row, col, nil)
 	adjust.Add(p.Weights, weightDense)
 
 	p.Weights = adjust
-
 }
 
 func DotProduct(input, weights *mat.Dense) float64 {
-	rows, cols := input.Dims()
-	multi := mat.NewDense(rows, cols, nil)
-	multi.MulElem(input, weights)
-	return multi.Norm(1)
+	row, col := input.Dims()
+	size := row * col
+
+	vec1 := mat.NewVecDense(size, input.RawMatrix().Data)
+	vec2 := mat.NewVecDense(size, weights.RawMatrix().Data)
+
+	return mat.Dot(vec1, vec2)
 }

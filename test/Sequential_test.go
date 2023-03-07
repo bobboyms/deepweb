@@ -1,43 +1,29 @@
-package main
+package test
 
 import (
 	"deepgo/layers"
 	"deepgo/models"
 	"deepgo/stepfunction"
-	"fmt"
 	"gonum.org/v1/gonum/mat"
-	"math"
+	"testing"
 )
 
-func softmax(x []float64) []float64 {
-	var sum float64
-	for _, v := range x {
-		sum += math.Exp(v)
-	}
-	result := make([]float64, len(x))
-	for i, v := range x {
-		result[i] = math.Exp(v) / sum
-	}
-	return result
-}
-
-func main() {
-
-	fmt.Println("P: ", softmax([]float64{0, 0.2, 0.1}))
+func TestSequential(t *testing.T) {
 
 	input := mat.NewDense(3, 2, []float64{
-		1, 0, 3, -4, 5, -6})
+		-10, 0.0002, 9.00003,
+		0.0004, 3.0005, 0.25})
 
 	model := models.NewSequential()
 	row, col := input.Dims()
 
 	model.AddLayer(layers.NewDense(
 		layers.Dims{Rows: row, Cols: col},
-		layers.Dims{Rows: 50, Cols: 25},
-		stepfunction.NewRelu()))
+		layers.Dims{Rows: 500, Cols: 50},
+		stepfunction.NewSigmoid()))
 
 	model.AddLayer(layers.NewDense(
-		layers.Dims{Rows: 50, Cols: 25},
+		layers.Dims{Rows: 500, Cols: 50},
 		layers.Dims{Rows: 3, Cols: 3},
 		stepfunction.NewRelu()))
 
@@ -48,10 +34,17 @@ func main() {
 
 	model.Compile(input)
 
-}
+	layer := model.Layers[0]
+	output := layer.Process(input)
+	for _, layer := range model.Layers[1:] {
+		output = layer.Process(output)
+	}
 
-func dotProduct(a, b *mat.Dense) {
+	//fmt.Printf("\n%v\n", mat.Formatted(output))
+	re := output.RawMatrix().Data[0]
 
-	output := &mat.Dense{}
-	output.Mul(a, b)
+	if re != 1 {
+		t.Fatalf("Expected 1 found %f", re)
+	}
+
 }

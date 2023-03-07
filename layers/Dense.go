@@ -10,24 +10,25 @@ import (
 )
 
 type Dense struct {
-	Size        int
-	Input       *mat.Dense
-	Neurons     Dims
-	InputDims   Dims
-	Perceptrons []neurons.Neuron
+	Size         int
+	Input        *mat.Dense
+	Neurons      Dims
+	InputDims    Dims
+	Perceptrons  []neurons.Neuron
+	StepFunction stepfunction.Activation
 }
 
 func NewDense(inputDims Dims, neurons Dims, stepFunction stepfunction.Activation) Layer {
 
 	bias := 0.1
-
 	size := neurons.Rows * neurons.Cols
 
 	return &Dense{
-		InputDims:   inputDims,
-		Neurons:     neurons,
-		Size:        size,
-		Perceptrons: CreatePerceptrons(inputDims, size, stepFunction, bias),
+		InputDims:    inputDims,
+		Neurons:      neurons,
+		Size:         size,
+		StepFunction: stepFunction,
+		Perceptrons:  CreatePerceptrons(inputDims, size, stepFunction, bias),
 	}
 
 }
@@ -62,6 +63,13 @@ func (d *Dense) Process(input *mat.Dense) *mat.Dense {
 		}()
 	}
 	wg.Wait()
+
+	if _, ok := d.StepFunction.(*stepfunction.Softmax); ok {
+		return mat.NewDense(
+			d.Neurons.Rows,
+			d.Neurons.Cols,
+			stepfunction.SoftmaxFunction(values))
+	}
 
 	return mat.NewDense(d.Neurons.Rows, d.Neurons.Cols, values)
 
