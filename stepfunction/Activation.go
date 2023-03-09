@@ -1,25 +1,7 @@
 package stepfunction
 
-const (
-	Sunday = iota
-	Monday
-	Tuesday
-	Wednesday
-	Thursday
-	Friday
-	Saturday
-)
-
-type DayOfWeek int
-
-func teste(d DayOfWeek) {
-
-}
-
-func x() {
-	teste(Friday)
-}
+import "gonum.org/v1/gonum/mat"
 
 type Activation interface {
-	Activation(float642 float64) float64
+	Activation(data *mat.Dense) *mat.Dense
 }

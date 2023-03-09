@@ -10,10 +10,11 @@ import (
 
 func TestLayers(t *testing.T) {
 
-	input := mat.NewDense(3, 3, []float64{
+	input := mat.NewDense(4, 3, []float64{
 		1, 0.025, 3,
 		-4, 5, -6,
-		68, 5, -6})
+		68, 500, -6,
+		24, -8745, -6})
 
 	model := models.NewSequential()
 	row, col := input.Dims()

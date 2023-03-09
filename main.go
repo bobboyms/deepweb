@@ -4,54 +4,41 @@ import (
 	"deepgo/layers"
 	"deepgo/models"
 	"deepgo/stepfunction"
-	"fmt"
 	"gonum.org/v1/gonum/mat"
-	"math"
 )
-
-func softmax(x []float64) []float64 {
-	var sum float64
-	for _, v := range x {
-		sum += math.Exp(v)
-	}
-	result := make([]float64, len(x))
-	for i, v := range x {
-		result[i] = math.Exp(v) / sum
-	}
-	return result
-}
 
 func main() {
 
-	fmt.Println("P: ", softmax([]float64{0, 0.2, 0.1}))
+	inputs := mat.NewDense(4, 2, []float64{
+		0, 0,
+		0, 1,
+		1, 0,
+		1, 1,
+	})
 
-	input := mat.NewDense(3, 2, []float64{
-		1, 0, 3, -4, 5, -6})
+	outputs := mat.NewDense(4, 1, []float64{
+		0,
+		0,
+		0,
+		1,
+	})
+
+	//weights := mat.NewDense(2, 3, []float64{
+	//	-0.424, -0.740, -0.961,
+	//	0.358, -0.577, -0.469,
+	//})
+
+	activation := stepfunction.NewSigmoid()
 
 	model := models.NewSequential()
-	row, col := input.Dims()
+	model.AddLayer(layers.NewDense(2, 3, activation))
+	model.AddLayer(layers.NewDense(3, 1, activation))
 
-	model.AddLayer(layers.NewDense(
-		layers.Dims{Rows: row, Cols: col},
-		layers.Dims{Rows: 50, Cols: 25},
-		stepfunction.NewRelu()))
+	//recordInput := inputs.RowView(2).(*mat.VecDense).RawVector().Data
+	//output := model.FeedForward(recordInput)
+	//output := dense.Process(recordInput)
 
-	model.AddLayer(layers.NewDense(
-		layers.Dims{Rows: 50, Cols: 25},
-		layers.Dims{Rows: 3, Cols: 3},
-		stepfunction.NewRelu()))
+	models.StartTraining(model, inputs, outputs, 1, 0.01)
 
-	model.AddLayer(layers.NewDense(
-		layers.Dims{Rows: 3, Cols: 3},
-		layers.Dims{Rows: 1, Cols: 1},
-		stepfunction.NewSoftmax()))
-
-	model.Compile(input)
-
-}
-
-func dotProduct(a, b *mat.Dense) {
-
-	output := &mat.Dense{}
-	output.Mul(a, b)
+	//fmt.Printf("Output \n%v\n", mat.Formatted(output))
 }

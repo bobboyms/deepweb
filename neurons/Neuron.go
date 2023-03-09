@@ -1,9 +1,7 @@
 package neurons
 
-import "gonum.org/v1/gonum/mat"
-
 type Neuron interface {
-	Process(input *mat.Dense) float64
-	AdjustWeights(value float64)
-	PrintWeights()
+	Process(input float64) float64
+	AdjustWeights(weight float64)
+	GetWeight() float64
 }

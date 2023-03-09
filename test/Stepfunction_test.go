@@ -19,10 +19,10 @@ func TestSoftMax(t *testing.T) {
 }
 
 func TestSigmoid(t *testing.T) {
-	result := stepfunction.NewSigmoid().Activation(1)
+	result := stepfunction.NewSigmoid().Activation(0)
 	fmt.Println(result)
 
-	if result != 0.7310585786300049 {
-		t.Fatalf("Expected 1 found %f", result)
+	if result != 0.5 {
+		t.Fatalf("Expected 0.5 found %f", result)
 	}
 }
