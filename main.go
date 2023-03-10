@@ -23,22 +23,24 @@ func main() {
 		1,
 	})
 
-	//weights := mat.NewDense(2, 3, []float64{
-	//	-0.424, -0.740, -0.961,
-	//	0.358, -0.577, -0.469,
-	//})
-
 	activation := stepfunction.NewSigmoid()
 
-	model := models.NewSequential()
+	weights := []*mat.Dense{
+		mat.NewDense(2, 3, []float64{
+			-0.424, -0.740, -0.961,
+			0.358, -0.577, -0.469,
+		}),
+		mat.NewDense(3, 1, []float64{
+			-0.017,
+			-0.893,
+			0.148,
+		}),
+	}
+
+	model := models.NewSequential(weights)
 	model.AddLayer(layers.NewDense(2, 3, activation))
 	model.AddLayer(layers.NewDense(3, 1, activation))
 
-	//recordInput := inputs.RowView(2).(*mat.VecDense).RawVector().Data
-	//output := model.FeedForward(recordInput)
-	//output := dense.Process(recordInput)
-
 	models.StartTraining(model, inputs, outputs, 1, 0.01)
 
-	//fmt.Printf("Output \n%v\n", mat.Formatted(output))
 }

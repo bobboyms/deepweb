@@ -1,9 +1,9 @@
 package test
 
 import (
-	"deepgo/stepfunction"
 	"deepgo/training"
 	"fmt"
+	"math"
 	"testing"
 )
 
@@ -21,6 +21,12 @@ func EQ(array1, array2 []float64) bool {
 	} else {
 		return false
 	}
+}
+
+func RoundTo3DecimalPlaces(num float64) float64 {
+	factor := math.Pow(10, 3)
+	rounded := math.Round(num*factor) / factor
+	return rounded
 }
 
 func TestWeightAdjustmentCalculation(t *testing.T) {
@@ -43,30 +49,25 @@ func TestWeightAdjustmentCalculation(t *testing.T) {
 func TestCalculateHiddenDelta(t *testing.T) {
 	nextDelta := []float64{-0.098}
 	activations := []float64{0.5, 0.5, 0.5}
-	weights := []float64{0.017, -0.893, 0.148}
+	weights := [][]float64{{0.017}, {-0.893}, {0.148}}
 
 	hiddenDelta := training.CalculateHiddenDelta(nextDelta, weights, activations)
+	fmt.Println(hiddenDelta)
 
-	results := []float64{-0.0003915161845278565, 0.020566114869610342, -0.0034084938417719263}
-
+	results := []float64{-0.00039151618452785644, 0.020566114869610342, -0.0034084938417719268}
 	if !EQ(results, hiddenDelta) {
-		t.Fatalf("Expected -0.0003915161845278565 0.020566114869610342 -0.0034084938417719263 found %f", hiddenDelta)
+		t.Fatalf("Expected -0.00039151618452785644, 0.020566114869610342, -0.0034084938417719268 found %f", hiddenDelta)
 	}
 
 }
 
 func TestCalculateOutputDelta(t *testing.T) {
-
-	activation := stepfunction.NewSigmoid().Activation(-0.274)
-
-	desiredOutput := []float64{1}
-	realOutput := []float64{activation}
-
+	desiredOutput := []float64{0}
+	realOutput := []float64{0.406}
 	result := training.CalculateOutputDelta(desiredOutput, realOutput)
-	fmt.Println(result)
 
-	if result[0] != 0.13559556484147062 {
-		t.Fatalf("Expected 0.13559556484147062 found %f", result)
+	if result[0] != -0.09742956989447803 {
+		t.Fatalf("Expected -0.09742956989447803 found %v", result)
 	}
 }
 
@@ -78,7 +79,6 @@ func TestCalculateOutputError(t *testing.T) {
 	}
 
 	result = training.CalculateOutputError(2, 1)
-
 	if result != 1 {
 		t.Fatalf("Expected 0 found %f", result)
 	}

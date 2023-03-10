@@ -8,16 +8,16 @@ import (
 )
 
 type Dense struct {
-	Inputs, Outputs int
+	InSize, OutSize int
 	Weights         *mat.Dense
 	StepFunction    stepfunction.Activation
 }
 
-func NewDense(inputs, outputs int, activation stepfunction.Activation) Layer {
+func NewDense(inSize, outSize int, activation stepfunction.Activation) Layer {
 
 	return &Dense{
-		Inputs:       inputs,
-		Outputs:      outputs,
+		InSize:       inSize,
+		OutSize:      outSize,
 		StepFunction: activation,
 	}
 }
@@ -41,8 +41,6 @@ func (d *Dense) Process(input []float64) *mat.Dense {
 		sumDense = sum
 	}
 
-	//fmt.Printf("Input \n%v\n", mat.Formatted(sumDense))
-	//fmt.Printf("Sigmoid \n%v\n", mat.Formatted(Sigmoid(sumDense)))
 	return d.StepFunction.Activation(sumDense)
 }
 
@@ -57,5 +55,3 @@ func Multiply(input float64, weights []float64) []float64 {
 	}
 	return results
 }
-
-
