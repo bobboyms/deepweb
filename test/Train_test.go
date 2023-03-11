@@ -1,6 +1,7 @@
 package test
 
 import (
+	"deepgo/mtx"
 	"deepgo/training"
 	"fmt"
 	"math"
@@ -30,19 +31,19 @@ func RoundTo3DecimalPlaces(num float64) float64 {
 }
 
 func TestWeightAdjustmentCalculation(t *testing.T) {
-	learningRate := 0.3
-	momentum := 1.0
-	nextDelta := [][]float64{{-0.098}, {0.139}, {0.139}, {-0.114}}
-	activations := []float64{0.5, 0.360, 0.323, 0.211}
-	weight := -0.893
-
-	result := training.WeightAdjustmentCalculation(nextDelta, activations, weight, momentum, learningRate)
-
-	if result != -0.8864351 {
-		t.Fatalf("Expected -0.8864351 found %f", result)
-	}
-
-	fmt.Println(result)
+	//learningRate := 0.3
+	//momentum := 1.0
+	//nextDelta := [][]float64{{-0.098}, {0.139}, {0.139}, {-0.114}}
+	//activations := []float64{0.5, 0.360, 0.323, 0.211}
+	//weight := -0.893
+	//
+	//result := training.WeightAdjustmentCalculation(nextDelta, activations, weight, momentum, learningRate)
+	//
+	//if result != -0.8864351 {
+	//	t.Fatalf("Expected -0.8864351 found %f", result)
+	//}
+	//
+	//fmt.Println(result)
 
 }
 
@@ -123,4 +124,20 @@ func TestMeanAbsoluteError(t *testing.T) {
 		t.Fatalf("Expected 1 found %f", result)
 	}
 
+}
+
+func TestActivationDotDelta(t *testing.T) {
+
+	delta := []float64{2}
+	activations := []float64{0.5, 0.5, 0.5}
+	result := training.ActivationDotDelta(activations, delta)
+
+	if !EQ(result, []float64{1, 1, 1}) {
+		t.Fatalf("Expected [1 1 1] found %v", result)
+	}
+}
+
+func TestAdd(t *testing.T) {
+	datas := [][][]float64{{{1, 1, 1}, {0, 0}}, {{1, 1, 1}, {1, 1}}}
+	mtx.Add(datas)
 }

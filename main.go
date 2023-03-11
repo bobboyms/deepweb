@@ -23,8 +23,6 @@ func main() {
 		1,
 	})
 
-	activation := stepfunction.NewSigmoid()
-
 	weights := []*mat.Dense{
 		mat.NewDense(2, 3, []float64{
 			-0.424, -0.740, -0.961,
@@ -38,9 +36,9 @@ func main() {
 	}
 
 	model := models.NewSequential(weights)
-	model.AddLayer(layers.NewDense(2, 3, activation))
-	model.AddLayer(layers.NewDense(3, 1, activation))
+	model.AddLayer(layers.NewDense(2, 3, stepfunction.NewSigmoid()))
+	model.AddLayer(layers.NewDense(3, 1, stepfunction.NewSigmoid()))
 
-	models.StartTraining(model, inputs, outputs, 1, 0.01)
+	models.StartTraining(model, inputs, outputs, 1000000, 0.5)
 
 }

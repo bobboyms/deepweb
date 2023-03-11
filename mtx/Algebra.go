@@ -4,6 +4,49 @@ import (
 	"gonum.org/v1/gonum/mat"
 )
 
+func Add(dataClass [][][]float64) [][]float64 {
+
+	sizeClass := len(dataClass)
+	layerMap := make(map[int][][]float64)
+
+	for class := 0; class < sizeClass; class++ {
+		dataLayer := dataClass[class]
+		for i, layer := range dataLayer {
+			v, ok := layerMap[i]
+			if ok {
+				v = append(v, layer)
+				layerMap[i] = v
+			} else {
+				var v [][]float64
+				v = append(v, layer)
+				layerMap[i] = v
+			}
+		}
+	}
+
+	add := func(values [][]float64) []float64 {
+
+		zeroDense := CreateDenseWithZeros(1, len(values[0]))
+		for _, value := range values {
+			sumDense := mat.NewDense(1, len(value), value)
+			add := &mat.Dense{}
+			add.Add(zeroDense, sumDense)
+			zeroDense = add
+		}
+
+		return zeroDense.RawMatrix().Data
+
+	}
+
+	sizeMap := len(layerMap)
+	newLayers := make([][]float64, sizeMap)
+	for i := 0; i < sizeMap; i++ {
+		newLayers[i] = add(layerMap[i])
+	}
+
+	return newLayers
+}
+
 func CreateDenseWithValue(row, col int, value float64) *mat.Dense {
 	size := row * col
 	values := make([]float64, size)
@@ -40,6 +83,17 @@ func DenseToSlice(matrix *mat.Dense) [][]float64 {
 		values[i] = matrix.RowView(i).(*mat.VecDense).RawVector().Data
 	}
 	return values
+}
+
+func SliceToDense(data [][]float64) *mat.Dense {
+	rows, cols := len(data), len(data[0])
+	flat := make([]float64, rows*cols)
+	for i, row := range data {
+		for j, val := range row {
+			flat[i*cols+j] = val
+		}
+	}
+	return mat.NewDense(rows, cols, flat)
 }
 
 func SumCol(values [][]float64) []float64 {

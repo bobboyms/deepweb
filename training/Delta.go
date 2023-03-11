@@ -4,8 +4,19 @@ import (
 	"deepgo/mtx"
 )
 
-func Mult(nextDelta, activation float64) float64 {
-	return activation * nextDelta
+func ActivationDotDelta(activation []float64, nextDelta []float64) []float64 {
+
+	size := len(activation)
+	dotValues := make([]float64, size)
+	for i, value := range activation {
+		sum := 0.0
+		for _, delta := range nextDelta {
+			sum += value * delta
+		}
+		dotValues[i] = sum
+	}
+
+	return dotValues
 }
 
 func CalculateOutputDelta(desiredOutput []float64, realOutput []float64) []float64 {

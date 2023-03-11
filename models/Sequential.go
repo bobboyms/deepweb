@@ -46,14 +46,12 @@ func (s *Sequential) FeedForward(input []float64) ([][]float64, [][]float64) {
 
 	layer := s.Layers[0]
 
+	inputsLayer[0] = input
 	output := layer.Process(input)
-	inputsLayer[0] = output.RawMatrix().Data
-
 	outputsLayer[0] = output.RawMatrix().Data
 	for i, layer := range s.Layers[1:] {
-		output = layer.Process(output.RawMatrix().Data)
-
 		inputsLayer[i+1] = output.RawMatrix().Data
+		output = layer.Process(output.RawMatrix().Data)
 		outputsLayer[i+1] = output.RawMatrix().Data
 	}
 
@@ -71,9 +69,9 @@ func DeltaCalculation(outputs [][]float64, realOutput *mat.Dense, weights []*mat
 			outputDeltaLayer = training.CalculateOutputDelta(outputLayer, realOutput.RawMatrix().Data)
 			deltaLayers = append(deltaLayers, outputDeltaLayer)
 
-			weights := mtx.DenseToSlice(weights[i])
-			outputDeltaLayer = training.CalculateHiddenDelta(outputDeltaLayer, weights, outputLayer)
-			deltaLayers = append(deltaLayers, outputDeltaLayer)
+			//weights := mtx.DenseToSlice(weights[i])
+			//outputDeltaLayer = training.CalculateHiddenDelta(outputDeltaLayer, weights, outputLayer)
+			//deltaLayers = append(deltaLayers, outputDeltaLayer)
 
 			first = false
 		} else {
@@ -103,30 +101,62 @@ func StartTraining(sequential *Sequential, x, y *mat.Dense, epochs int, lr float
 			dataPredict := y.RowView(r).(*mat.VecDense).RawVector().Data
 
 			outputsLayer, inputsLayer := sequential.FeedForward(dataTraining)
+
 			errors[r] = training.MeanAbsoluteError(dataPredict, outputsLayer[layersSize-1])
+			fmt.Println("Errors: ", errors[r])
 			deltaLayers := DeltaCalculation(outputsLayer, mat.NewDense(1, yCol, dataPredict), sequential.Weights)
 
 			deltasClass = append(deltasClass, deltaLayers)
-			inputsClass = append(inputsClass, inputsLayer)
+			inputsClass = append(inputsClass, ReverseArray(inputsLayer))
 		}
 
-		//fmt.Println("deltasClass: %v", len(deltasClass))
-		//fmt.Println("inputsClass: %v", len(inputsClass))
-		fmt.Printf("Mean error: %.4f\n", Mean(errors))
+		//fmt.Printf("Mean error: %.4f\n", Mean(errors))
 
 		sizeClass := len(y.RawMatrix().Data)
-		for class := 0; i < sizeClass; i++ {
-
+		layersMultiClass := make([][][]float64, sizeClass)
+		for class := 0; class < sizeClass; class++ {
 			deltas := deltasClass[class]
 			inputs := inputsClass[class]
 
-			//layerSize := len(deltas)
-			for layer := 0; i < len(deltas); i++ {
-				fmt.Println("deltas: ", deltas[layer])
-				fmt.Println("inputs: ", inputs[layer])
+			layerSize := len(deltas)
+			mults := make([][]float64, layerSize)
+			for layer := 0; layer < layerSize; layer++ {
+				result := training.ActivationDotDelta(inputs[layer], deltas[layer])
+				mults[layer] = result
 			}
 
+			layersMultiClass[class] = mults
+
 		}
+
+		multiply := func(classSum []float64, weights [][]float64) *mat.Dense {
+
+			rows, cols := len(weights), len(weights[0])
+			flat := make([]float64, rows*cols)
+
+			for i, row := range weights {
+				for j, col := range row {
+					flat[i*cols+j] = (col * 1) + classSum[i]*lr
+				}
+			}
+
+			return mat.NewDense(rows, cols, flat)
+
+		}
+
+		layersSumClass := mtx.Add(layersMultiClass)
+		newWeights := make([]*mat.Dense, len(layersSumClass))
+		for i, weighs := range ReverseDense(sequential.Weights) {
+			newWeights[i] = multiply(layersSumClass[i], mtx.DenseToSlice(weighs))
+		}
+
+		newSequential := NewSequential(ReverseDense(newWeights))
+		newSequential.Layers = sequential.Layers
+		sequential = newSequential
+
+		//fmt.Println(">>>> Epoca:", i)
+		//fmt.Println("Camadas:", len(sequential.Layers))
+		//fmt.Println("Pesos:", mtx.DenseToSlice(sequential.Weights[1]))
 
 	}
 
@@ -151,6 +181,24 @@ func Mean(nums []float64) float64 {
 		sum += num
 	}
 	return sum / float64(len(nums))
+}
+
+func ReverseArray(data [][]float64) [][]float64 {
+	length := len(data)
+	var result [][]float64
+	for i := length - 1; i >= 0; i-- {
+		result = append(result, data[i])
+	}
+	return result
+}
+
+func ReverseDense(data []*mat.Dense) []*mat.Dense {
+	length := len(data)
+	var result []*mat.Dense
+	for i := length - 1; i >= 0; i-- {
+		result = append(result, data[i])
+	}
+	return result
 }
 
 func GetRow(mtx *mat.Dense, line int) []float64 {
